@@ -38,9 +38,9 @@ class ProjectsGenerator
 
   def self.hash_for(repo)
     {
-      name: repo.name,
-      guid: repo.name.gsub(/_|\./, '-'),
-      travis_url: "https://travis-ci.org/#{org_name}/#{repo.name}"
+      'name' => repo.name,
+      'guid' => repo.name.gsub(/_|\./, '-'),
+      'travis url' => "https://travis-ci.org/#{org_name}/#{repo.name}"
     }
   end
 
