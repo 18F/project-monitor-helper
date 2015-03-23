@@ -10,6 +10,8 @@ class ProjectsGenerator
     write_travis_repos_to_json_file
   end
 
+  private
+
   def self.add_search_results_to_travis_repos
     travis_search_results.items.each do |item|
       @@travis_repos << hash_for(item.repository)
@@ -17,13 +19,13 @@ class ProjectsGenerator
   end
 
   def self.travis_search_results
-    @results ||= Octokit.search_code('language user:18F filename:.travis.yml', per_page: 100)
+    @results ||= Octokit.search_code("language user:#{org_name} filename:travis", per_page: 100)
   end
 
   def self.add_forked_repos
     forked_repos.each do |repo|
       begin
-        Octokit.contents("18F/#{repo.name}", path: '.travis.yml')
+        Octokit.contents("#{org_name}/#{repo.name}", path: '.travis.yml')
         @@travis_repos << hash_for(repo)
       rescue Octokit::NotFound
       end
@@ -31,14 +33,14 @@ class ProjectsGenerator
   end
 
   def self.forked_repos
-    @forked_repos ||= Octokit.org_repos '18F', type: 'forks'
+    @forked_repos ||= Octokit.org_repos "#{org_name}", type: 'forks'
   end
 
   def self.hash_for(repo)
     {
       name: repo.name,
-      guid: repo.name,
-      travis_url: "https://travis-ci.org/18F/#{repo.name}"
+      guid: repo.name.gsub(/_|\./, '-'),
+      travis_url: "https://travis-ci.org/#{org_name}/#{repo.name}"
     }
   end
 
@@ -46,6 +48,10 @@ class ProjectsGenerator
     File.open('projects.json', 'w') do |f|
       f.write JSON.pretty_generate(@@travis_repos.uniq.sort_by { |h| h[:name] })
     end
+  end
+
+  def self.org_name
+    ENV['GITHUB_ORG']
   end
 end
 
